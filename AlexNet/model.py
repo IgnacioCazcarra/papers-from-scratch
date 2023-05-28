@@ -1,13 +1,5 @@
-import torch
 from torch import nn 
 import torch.nn.functional as F
-
-
-def response_normalization():
-    K = torch.tensor([2])
-    n = torch.tensor([5])
-    alpha = torch.tensor([10e-4])
-    beta = torch.tensor([0.75])
 
 
 class AlexNet(nn.Module):
@@ -15,14 +7,11 @@ class AlexNet(nn.Module):
     def __init__(self):
         super(AlexNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(3, 48, kernel_size=11, stride=4)
-        # Here we have to normalize and pool the response from the output of conv1
-        self.conv2 = nn.Conv2d(48, 256, kernel_size=5, stride=4)
-        # Here we have to normalize and pool the response from the output of conv2
-        self.conv3 = nn.Conv2d(256, 192, kernel_size=3, stride=4)
-        self.conv4 = nn.Conv2d(192, 192, kernel_size=3, stride=4)
-        self.conv5 = nn.Conv2d(192, 256, kernel_size=3, stride=4)
-        # Here we have to normalize and pool the response from the output of conv5
+        self.conv1 = nn.Conv2d(3, 96, kernel_size=11, stride=4)
+        self.conv2 = nn.Conv2d(96, 256, kernel_size=5)
+        self.conv3 = nn.Conv2d(256, 384, kernel_size=3)
+        self.conv4 = nn.Conv2d(384, 384, kernel_size=3)
+        self.conv5 = nn.Conv2d(384, 256, kernel_size=3)
         
         self.pool = nn.MaxPool2d(kernel_size=3, stride=2)
         self.response_normalization = ResponseNormalizationLayer()
@@ -52,12 +41,12 @@ class AlexNet(nn.Module):
         x = F.relu(self.conv4(x))
         x = self.pool(F.relu(self.conv5(x)))
         # FC
-        x = self.fc1(x)
+        x = F.relu(self.fc1(x))
         x = self.dropout(x)
-        x = self.fc2(x)
+        x = F.relu(self.fc2(x))
         x = self.dropout(x)
         x = self.fc3(x)
-        return x
+        return F.softmax(x)
 
 
 class ResponseNormalizationLayer(nn.Module):
