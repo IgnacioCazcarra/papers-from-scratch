@@ -17,7 +17,8 @@ class AlexNet(nn.Module):
         self.response_normalization = ResponseNormalizationLayer()
         self.dropout = nn.Dropout(p=0.5)
 
-        self.fc1 = nn.Linear(4096, 4096)
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(256*6*6, 4096)
         self.fc2 = nn.Linear(4096, 4096)
         self.fc3 = nn.Linear(4096, 1000)
 
@@ -28,7 +29,7 @@ class AlexNet(nn.Module):
         self.conv3.bias.data.fill_(0)
 
 
-    def init_weights(m):
+    def init_weights(self, m):
         nn.init.normal_(m.weight, mean=0.0, std=0.01)
         m.bias.data.fill_(1)
 
@@ -41,6 +42,7 @@ class AlexNet(nn.Module):
         x = F.relu(self.conv4(x))
         x = self.pool(F.relu(self.conv5(x)))
         # FC
+        x = self.flatten(x)
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
