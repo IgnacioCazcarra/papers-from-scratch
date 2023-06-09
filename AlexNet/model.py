@@ -17,6 +17,8 @@ class AlexNet(nn.Module):
         self.response_normalization = ResponseNormalizationLayer()
         self.dropout = nn.Dropout(p=0.5)
 
+        self.avg_pool = nn.AdaptiveAvgPool2d((6,6))
+
         self.flatten = nn.Flatten()
         self.fc1 = nn.Linear(256*6*6, 4096)
         self.fc2 = nn.Linear(4096, 4096)
@@ -35,14 +37,15 @@ class AlexNet(nn.Module):
 
 
     def forward(self, x):
-        # CNN
         x = self.pool(self.response_normalization(F.relu(self.conv1(x))))
         x = self.pool(self.response_normalization(F.relu(self.conv2(x))))
         x = F.relu(self.conv3(x))
         x = F.relu(self.conv4(x))
         x = self.pool(F.relu(self.conv5(x)))
-        # FC
-        x = self.flatten(x)
+        
+        x = self.avg_pool(x)
+
+        x = self.flatten(x, 1)
         x = F.relu(self.fc1(x))
         x = self.dropout(x)
         x = F.relu(self.fc2(x))
