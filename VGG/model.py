@@ -5,6 +5,7 @@ import torch.nn.functional as F
 class VGG19(nn.Module):
     def __init__(self):
         super(VGG19, self).__init__()
+        # NOTE: Kernel_size=3 + stride=1 + padding=1 keeps the same spatial shape for the feature map.
 
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1)
@@ -28,6 +29,9 @@ class VGG19(nn.Module):
         self.conv14 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
         self.conv15 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
         self.conv16 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+
+        # Not mentioned in the paper but rather necessary. Seems like it is arbitrary as in other cases like AlexNet.
+        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
 
         self.flatten = nn.Flatten()
         self.dropout = nn.Dropout(p=0.5)
@@ -64,6 +68,8 @@ class VGG19(nn.Module):
         x = F.relu(self.conv15(x))
         x = F.relu(self.conv16(x))
         x = self.pool(x)
+
+        x = self.avgpool(x)
 
         x = self.flatten(x, 1)
         x = F.relu(self.fc1(x))
